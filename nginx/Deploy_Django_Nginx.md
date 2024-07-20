@@ -146,9 +146,9 @@ deactivate
 - Create System Socket File for Gunicorn
 ```sh
 Syntax:- sudo nano /etc/systemd/system/your_domain.gunicorn.socket
-Example:- sudo nano /etc/systemd/system/sonamkumari.com.gunicorn.socket
+Example:- sudo nano /etc/systemd/system/rxgis.com.gunicorn.socket
 ```
-- Write below code inside sonamkumari.com.gunicorn.socket File
+- Write below code inside rxgis.com.gunicorn.socket File
 ```sh
 Syntax:- 
 [Unit]
@@ -162,10 +162,10 @@ WantedBy=sockets.target
 
 Example:- 
 [Unit]
-Description=sonamkumari.com.gunicorn socket
+Description=rxgis.com.gunicorn socket
 
 [Socket]
-ListenStream=/run/sonamkumari.com.gunicorn.sock
+ListenStream=/run/rxgis.com.gunicorn.sock
 
 [Install]
 WantedBy=sockets.target
@@ -173,9 +173,9 @@ WantedBy=sockets.target
 - Create System Service File for Gunicorn
 ```sh
 Syntax:- sudo nano /etc/systemd/system/your_domain.gunicorn.service
-Example:- sudo nano /etc/systemd/system/sonamkumari.com.gunicorn.service
+Example:- sudo nano /etc/systemd/system/rxgis.com.gunicorn.service
 ```
-- Write below code inside sonamkumari.com.gunicorn.service File
+- Write below code inside rxgis.com.gunicorn.service File
 ```sh
 Syntax:-
 [Unit]
@@ -198,8 +198,8 @@ WantedBy=multi-user.target
 
 Example:-
 [Unit]
-Description=sonamkumari.com.gunicorn daemon
-Requires=sonamkumari.com.gunicorn.socket
+Description=rxgis.com.gunicorn daemon
+Requires=rxgis.com.gunicorn.socket
 After=network.target
 
 [Service]
@@ -209,7 +209,7 @@ WorkingDirectory=/home/raj/miniblog
 ExecStart=/home/raj/miniblog/mb/bin/gunicorn \
           --access-logfile - \
           --workers 3 \
-          --bind unix:/run/sonamkumari.com.gunicorn.sock \
+          --bind unix:/run/rxgis.com.gunicorn.sock \
           miniblog.wsgi:application
 
 [Install]
@@ -218,33 +218,33 @@ WantedBy=multi-user.target
 - Start Gunicorn Socket and Service
 ```sh
 Syntax:- sudo systemctl start your_domain.gunicorn.socket
-Example:- sudo systemctl start sonamkumari.com.gunicorn.socket
+Example:- sudo systemctl start rxgis.com.gunicorn.socket
 
 Syntax:- sudo systemctl start your_domain.gunicorn.service
-Example:- sudo systemctl start sonamkumari.com.gunicorn.service
+Example:- sudo systemctl start rxgis.com.gunicorn.service
 ```
 - Enable Gunicorn Socket and Service
 ```sh
 Syntax:- sudo systemctl enable your_domain.gunicorn.socket
-Example:- sudo systemctl enable sonamkumari.com.gunicorn.socket
+Example:- sudo systemctl enable rxgis.com.gunicorn.socket
 
 Syntax:- sudo systemctl enable your_domain.gunicorn.service
-Example:- sudo systemctl enable sonamkumari.com.gunicorn.service
+Example:- sudo systemctl enable rxgis.com.gunicorn.service
 ```
 - Check Gunicorn Status
 ```sh
-sudo systemctl status sonamkumari.com.gunicorn.socket
-sudo systemctl status sonamkumari.com.gunicorn.service
+sudo systemctl status rxgis.com.gunicorn.socket
+sudo systemctl status rxgis.com.gunicorn.service
 ```
 - Restart Gunicorn (You may need to restart everytime you make change in your project code)
 ```sh
 sudo systemctl daemon-reload
-sudo systemctl restart sonamkumari.com.gunicorn
+sudo systemctl restart rxgis.com.gunicorn
 ```
 - Create Virtual Host File
 ```sh
 Syntax:- sudo nano /etc/nginx/sites-available/your_domain
-Example:- sudo nano /etc/nginx/sites-available/sonamkumari.com
+Example:- sudo nano /etc/nginx/sites-available/rxgis.com
 ```
 - Write following Code in Virtual Host File
 ```sh
@@ -279,7 +279,7 @@ server{
     listen 80;
     listen [::]:80;
 
-    server_name sonamkumari.com www.sonamkumari.com;
+    server_name rxgis.com www.rxgis.com;
 
     location = /favicon.ico { access_log off; log_not_found off; }
 
@@ -288,7 +288,7 @@ server{
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_pass http://unix:/run/sonamkumari.com.gunicorn.sock;
+        proxy_pass http://unix:/run/rxgis.com.gunicorn.sock;
     }
 
     location  /static/ {
@@ -303,7 +303,7 @@ server{
 - Enable Virtual Host or Create Symbolic Link of Virtual Host File
 ```sh
 Syntax:- sudo ln -s /etc/nginx/sites-available/virtual_host_file /etc/nginx/sites-enabled/virtual_host_file
-Example:- sudo ln -s /etc/nginx/sites-available/sonamkumari.com /etc/nginx/sites-enabled/sonamkumari.com
+Example:- sudo ln -s /etc/nginx/sites-available/rxgis.com /etc/nginx/sites-enabled/rxgis.com
 ```
 - Check Configuration is Correct or Not
 ```sh
@@ -324,12 +324,12 @@ sudo service nginx restart
     ALLOWED_HOST = ["your_domain"]
     
     Example:-
-    ALLOWED_HOST = ["sonamkumari.com", "www.sonamkumari.com"]
+    ALLOWED_HOST = ["rxgis.com", "www.rxgis.com"]
     ```
     - Restart Gunicorn (You need to restart everytime you make change in your project code)
     ```sh
     sudo systemctl daemon-reload
-    sudo systemctl restart sonamkumari.com.gunicorn
+    sudo systemctl restart rxgis.com.gunicorn
     ```
 - Create required Directories inside /var/www We will use it to serve static and media files only
 ```sh
@@ -368,7 +368,7 @@ MEDIA_ROOT = "/var/www/miniblog/media/"
 - Restart Gunicorn (You need to restart everytime you make change in your project code)
 ```sh
 sudo systemctl daemon-reload
-sudo systemctl restart sonamkumari.com.gunicorn
+sudo systemctl restart rxgis.com.gunicorn
 ```
 - Activate Virtual Env
 ```sh
@@ -400,7 +400,7 @@ deactivate
 - Restart Gunicorn (You may need to restart everytime you make change in your project code)
 ```sh
 sudo systemctl daemon-reload
-sudo systemctl restart sonamkumari.com.gunicorn
+sudo systemctl restart rxgis.com.gunicorn
 ```
 - Restart Nginx
 ```sh
@@ -414,7 +414,7 @@ git pull
 - Restart Gunicorn (You may need to restart everytime you make change in your project code)
 ```sh
 sudo systemctl daemon-reload
-sudo systemctl restart sonamkumari.com.gunicorn
+sudo systemctl restart rxgis.com.gunicorn
 ```
 
 ##
