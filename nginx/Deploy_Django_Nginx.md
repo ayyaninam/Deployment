@@ -25,7 +25,7 @@
 - Get Access to Remote Server via SSH
 ```sh
 Syntax:- ssh -p PORT USERNAME@HOSTIP
-Example:- ssh -p 1034 raj@216.32.44.12
+Example:- ssh -p 1034 ayyan@216.32.44.12
 ```
 - Verify that all required softwares are installed
 ```sh
@@ -80,18 +80,18 @@ exit
       - Copy Zip File from Local Windows Machine to Linux Remote Server
       ```sh
       Syntax:- scp -P Remote_Server_Port Source_File_Path Destination_Path
-      Example:- scp -P 1034 miniblog.zip raj@216.32.44.12:
+      Example:- scp -P 1034 presentify.zip ayyan@216.32.44.12:
       ```
       - Copied Successfully
       - Get Access to Remote Server via SSH
       ```sh
       Syntax:- ssh -p PORT USERNAME@HOSTIP
-      Example:- ssh -p 1034 raj@216.32.44.12
+      Example:- ssh -p 1034 ayyan@216.32.44.12
       ```
       - Unzip the Copied Project Zip File
       ```sh
       Syntax:- unzip zip_file_name
-      Example:- unzip miniblog.zip
+      Example:- unzip presentify.zip
       ```
       
   2. Using Github
@@ -105,7 +105,7 @@ exit
       - If Permission Denied then Own .ssh then try again to Generate SSH Keys
       ```sh
       Syntax:- sudo chown -R user_name .ssh
-      Example:- sudo chown -R raj .ssh
+      Example:- sudo chown -R ayyan .ssh
       ```
       - Open Public SSH Keys then copy the key
       ```sh
@@ -118,7 +118,7 @@ exit
       - Clone Project from your github Repo using SSH Path It requires to setup SSH Key on Github
       ```sh
       Syntax:- git clone ssh_repo_path
-      Example:- git clone git@github.com:geekyshow1/miniblog.git
+      Example:- git clone git@github.com:geekyshow1/presentify.git
       ```
 - Create Virtual env
 ```sh
@@ -146,9 +146,9 @@ deactivate
 - Create System Socket File for Gunicorn
 ```sh
 Syntax:- sudo nano /etc/systemd/system/your_domain.gunicorn.socket
-Example:- sudo nano /etc/systemd/system/rxgis.com.gunicorn.socket
+Example:- sudo nano /etc/systemd/system/presentify.ai.gunicorn.socket
 ```
-- Write below code inside rxgis.com.gunicorn.socket File
+- Write below code inside presentify.ai.gunicorn.socket File
 ```sh
 Syntax:- 
 [Unit]
@@ -162,10 +162,10 @@ WantedBy=sockets.target
 
 Example:- 
 [Unit]
-Description=rxgis.com.gunicorn socket
+Description=presentify.ai.gunicorn socket
 
 [Socket]
-ListenStream=/run/rxgis.com.gunicorn.sock
+ListenStream=/run/presentify.ai.gunicorn.sock
 
 [Install]
 WantedBy=sockets.target
@@ -173,9 +173,9 @@ WantedBy=sockets.target
 - Create System Service File for Gunicorn
 ```sh
 Syntax:- sudo nano /etc/systemd/system/your_domain.gunicorn.service
-Example:- sudo nano /etc/systemd/system/rxgis.com.gunicorn.service
+Example:- sudo nano /etc/systemd/system/presentify.ai.gunicorn.service
 ```
-- Write below code inside rxgis.com.gunicorn.service File
+- Write below code inside presentify.ai.gunicorn.service File
 ```sh
 Syntax:-
 [Unit]
@@ -198,19 +198,19 @@ WantedBy=multi-user.target
 
 Example:-
 [Unit]
-Description=rxgis.com.gunicorn daemon
-Requires=rxgis.com.gunicorn.socket
+Description=presentify.ai.gunicorn daemon
+Requires=presentify.ai.gunicorn.socket
 After=network.target
 
 [Service]
-User=raj
-Group=raj
-WorkingDirectory=/home/raj/miniblog
-ExecStart=/home/raj/miniblog/mb/bin/gunicorn \
+User=ayyan
+Group=ayyan
+WorkingDirectory=/home/ayyan/presentify
+ExecStart=/home/ayyan/presentify/mb/bin/gunicorn \
           --access-logfile - \
           --workers 3 \
-          --bind unix:/run/rxgis.com.gunicorn.sock \
-          miniblog.wsgi:application
+          --bind unix:/run/presentify.ai.gunicorn.sock \
+          presentify.wsgi:application
 
 [Install]
 WantedBy=multi-user.target
@@ -218,33 +218,33 @@ WantedBy=multi-user.target
 - Start Gunicorn Socket and Service
 ```sh
 Syntax:- sudo systemctl start your_domain.gunicorn.socket
-Example:- sudo systemctl start rxgis.com.gunicorn.socket
+Example:- sudo systemctl start presentify.ai.gunicorn.socket
 
 Syntax:- sudo systemctl start your_domain.gunicorn.service
-Example:- sudo systemctl start rxgis.com.gunicorn.service
+Example:- sudo systemctl start presentify.ai.gunicorn.service
 ```
 - Enable Gunicorn Socket and Service
 ```sh
 Syntax:- sudo systemctl enable your_domain.gunicorn.socket
-Example:- sudo systemctl enable rxgis.com.gunicorn.socket
+Example:- sudo systemctl enable presentify.ai.gunicorn.socket
 
 Syntax:- sudo systemctl enable your_domain.gunicorn.service
-Example:- sudo systemctl enable rxgis.com.gunicorn.service
+Example:- sudo systemctl enable presentify.ai.gunicorn.service
 ```
 - Check Gunicorn Status
 ```sh
-sudo systemctl status rxgis.com.gunicorn.socket
-sudo systemctl status rxgis.com.gunicorn.service
+sudo systemctl status presentify.ai.gunicorn.socket
+sudo systemctl status presentify.ai.gunicorn.service
 ```
 - Restart Gunicorn (You may need to restart everytime you make change in your project code)
 ```sh
 sudo systemctl daemon-reload
-sudo systemctl restart rxgis.com.gunicorn
+sudo systemctl restart presentify.ai.gunicorn
 ```
 - Create Virtual Host File
 ```sh
 Syntax:- sudo nano /etc/nginx/sites-available/your_domain
-Example:- sudo nano /etc/nginx/sites-available/rxgis.com
+Example:- sudo nano /etc/nginx/sites-available/presentify.ai
 ```
 - Write following Code in Virtual Host File
 ```sh
@@ -279,7 +279,7 @@ server{
     listen 80;
     listen [::]:80;
 
-    server_name rxgis.com www.rxgis.com;
+    server_name presentify.ai www.presentify.ai;
 
     location = /favicon.ico { access_log off; log_not_found off; }
 
@@ -288,22 +288,22 @@ server{
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_pass http://unix:/run/rxgis.com.gunicorn.sock;
+        proxy_pass http://unix:/run/presentify.ai.gunicorn.sock;
     }
 
     location  /static/ {
-        root /var/www/miniblog;
+        root /var/www/presentify;
     }
 
     location  /media/ {
-        root /var/www/miniblog;
+        root /var/www/presentify;
     }
 }
 ```
 - Enable Virtual Host or Create Symbolic Link of Virtual Host File
 ```sh
 Syntax:- sudo ln -s /etc/nginx/sites-available/virtual_host_file /etc/nginx/sites-enabled/virtual_host_file
-Example:- sudo ln -s /etc/nginx/sites-available/rxgis.com /etc/nginx/sites-enabled/rxgis.com
+Example:- sudo ln -s /etc/nginx/sites-available/presentify.ai /etc/nginx/sites-enabled/presentify.ai
 ```
 - Check Configuration is Correct or Not
 ```sh
@@ -324,12 +324,12 @@ sudo service nginx restart
     ALLOWED_HOST = ["your_domain"]
     
     Example:-
-    ALLOWED_HOST = ["rxgis.com", "www.rxgis.com"]
+    ALLOWED_HOST = ["presentify.ai", "www.presentify.ai"]
     ```
     - Restart Gunicorn (You need to restart everytime you make change in your project code)
     ```sh
     sudo systemctl daemon-reload
-    sudo systemctl restart rxgis.com.gunicorn
+    sudo systemctl restart presentify.ai.gunicorn
     ```
 - Create required Directories inside /var/www We will use it to serve static and media files only
 ```sh
@@ -342,13 +342,13 @@ sudo mkdir static media
 ```sh
 cd /var/www
 Syntax:- sudo chown -R user:user project_folder_name
-Example:- sudo chown -R raj:raj miniblog
+Example:- sudo chown -R ayyan:ayyan presentify
 ```
 - If we want to use Development's Media Files then We should move development's media files to public directory (Optional)
 ```sh
 cd ~/project_folder_name
 Syntax:- sudo mv media/* /var/www/project_folder_name/media/
-Example:- sudo mv media/* /var/www/miniblog/media/
+Example:- sudo mv media/* /var/www/presentify/media/
 ```
 - Open Django Project settings.py
 ```sh
@@ -360,15 +360,15 @@ nano settings.py
 DEBUG = False
 
 STATIC_URL = 'static/'
-STATIC_ROOT = "/var/www/miniblog/static/"
+STATIC_ROOT = "/var/www/presentify/static/"
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = "/var/www/miniblog/media/"
+MEDIA_ROOT = "/var/www/presentify/media/"
 ```
 - Restart Gunicorn (You need to restart everytime you make change in your project code)
 ```sh
 sudo systemctl daemon-reload
-sudo systemctl restart rxgis.com.gunicorn
+sudo systemctl restart presentify.ai.gunicorn
 ```
 - Activate Virtual Env
 ```sh
@@ -400,7 +400,7 @@ deactivate
 - Restart Gunicorn (You may need to restart everytime you make change in your project code)
 ```sh
 sudo systemctl daemon-reload
-sudo systemctl restart rxgis.com.gunicorn
+sudo systemctl restart presentify.ai.gunicorn
 ```
 - Restart Nginx
 ```sh
@@ -414,14 +414,14 @@ git pull
 - Restart Gunicorn (You may need to restart everytime you make change in your project code)
 ```sh
 sudo systemctl daemon-reload
-sudo systemctl restart rxgis.com.gunicorn
+sudo systemctl restart presentify.ai.gunicorn
 ```
 
 ##
 ### How to Automate Django Deployment using Github Action
 - On Your Local Machine, Open Your Project using VS Code or any Editor
-- Create A Folder named .scripts inside your root project folder e.g. miniblog/.scripts
-- Inside .scripts folder Create A file with .sh extension e.g. miniblog/.scripts/deploy.sh
+- Create A Folder named .scripts inside your root project folder e.g. presentify/.scripts
+- Inside .scripts folder Create A file with .sh extension e.g. presentify/.scripts/deploy.sh
 - Write below script inside the created .sh file
 ```sh
 #!/bin/bash
@@ -467,8 +467,8 @@ echo "Deployment Finished !"
 ```sh
 git update-index --add --chmod=+x deploy.sh
 ```
-- Create Directory Path named .github/workflows inside your root project folder e.g. miniblog/.github/workflows
-- Inside workflows folder Create A file with .yml extension e.g. miniblog/.github/workflows/deploy.yml
+- Create Directory Path named .github/workflows inside your root project folder e.g. presentify/.github/workflows
+- Inside workflows folder Create A file with .yml extension e.g. presentify/.github/workflows/deploy.yml
 - Write below script inside the created .yml file
 ```sh
 name: Deploy
@@ -520,7 +520,7 @@ whoami
 - Generate SSH Key for Github Action by Login into Remote Server then run below Command OR You can use old SSH Key But I am creating New one for Github Action
 ```sh
 Syntax:- ssh-keygen -f key_path -t ed25519 -C "your_email@example.com"
-Example:- ssh-keygen -f /home/raj/.ssh/gitaction_ed25519 -t ed25519 -C "gitactionautodep"
+Example:- ssh-keygen -f /home/ayyan/.ssh/gitaction_ed25519 -t ed25519 -C "gitactionautodep"
 ```
 - Open Newly Created Public SSH Keys then copy the key
 ```sh
