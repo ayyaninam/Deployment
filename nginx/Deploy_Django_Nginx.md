@@ -551,3 +551,329 @@ git pull
 - If you get any File Permission error in the action then you have to change file permission accordingly.
 - All Done
 
+
+
+#CELERY
+Certainly! To run Celery and Celery Beat as systemd services on Ubuntu with minimal downtime, you can use `systemctl` to manage these services. This approach provides better integration with the system's init system, allows for automatic restarts, logging, and is generally preferred for production environments.
+
+Below are detailed steps to set up Celery and Celery Beat as systemd services for your Django project `presentify` located at `/home/ayyan/presentify`.
+
+---
+
+### **Prerequisites**
+
+1. **Django Project Setup:**
+   - Your Django project (`presentify`) is properly configured.
+   - Celery is installed and configured in your project.
+   - Celery Beat is installed for periodic tasks.
+   - You have a virtual environment set up (recommended).
+
+2. **Celery Configuration:**
+   - Ensure you have a `celery.py` file in your project directory and that it's properly set up.
+   - Ensure your Django apps have tasks defined and registered.
+
+3. **System User:**
+   - Create a dedicated system user for running the Celery services if not already existing (in this case, `ayyan`).
+
+---
+
+### **Step 1: Configure Celery in Your Django Project**
+
+Ensure your Django project is configured to work with Celery:
+
+**`presentify/celery.py`:**
+
+```python
+from __future__ import absolute_import, unicode_literals
+import os
+from celery import Celery
+
+# Set default Django settings module for 'celery' program.
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'presentify.settings')
+
+app = Celery('presentify')
+
+# Using a string here means the worker doesn't have to serialize
+# the configuration object to child processes.
+app.config_from_object('django.conf:settings', namespace='CELERY')
+
+# Load task modules from all registered Django app configs.
+app.autodiscover_tasks()
+```
+
+**`presentify/__init__.py`:**
+
+```python
+from __future__ import absolute_import, unicode_literals
+from .celery import app as celery_app
+
+__all__ = ('celery_app',)
+```
+
+Ensure your `settings.py` includes the necessary Celery configurations.
+
+---
+
+### **Step 2: Create systemd Service Files**
+
+#### **2.1 Identify Paths**
+
+- **Project Directory:** `/home/ayyan/presentify`
+- **Virtual Environment (if used):** For example, `/home/ayyan/presentify`
+- **Python Executable:** The Python interpreter from your virtual environment or system Python.
+
+#### **2.2 Create Celery Service File**
+
+Create a systemd service file for Celery:
+
+```bash
+sudo nano /etc/systemd/system/celery.service
+```
+
+**Add the following configuration:**
+
+```ini
+[Unit]
+Description=Celery Service
+After=network.target
+
+[Service]
+Type=forking
+User=ayyan
+Group=www-data
+Environment=DJANGO_SETTINGS_MODULE=presentify.settings
+Environment=PYTHONPATH=/home/ayyan/presentify
+WorkingDirectory=/home/ayyan/presentify
+ExecStart=/home/ayyan/presentify/env/bin/celery multi start worker --app=presentify.celery:app --concurrency=4 --logfile=/var/log/celery/worker.log --pidfile=/var/run/celery/%n.pid
+ExecStop=/home/ayyan/presentify/env/bin/celery multi stopwait worker --pidfile=/var/run/celery/%n.pid
+ExecReload=/home/ayyan/presentify/env/bin/celery multi restart worker --pidfile=/var/run/celery/%n.pid
+Restart=always
+RestartSec=3
+StartLimitBurst=5
+StartLimitInterval=10
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target
+```
+
+#### **2.3 Create Celery Beat Service File**
+
+Create a systemd service file for Celery Beat:
+
+```bash
+sudo nano /etc/systemd/system/celerybeat.service
+```
+
+**Add the following configuration:**
+
+```ini
+[Unit]
+Description=Celery Beat Service
+After=network.target
+
+[Service]
+Type=simple
+User=ayyan
+Group=www-data
+Environment=DJANGO_SETTINGS_MODULE=presentify.settings
+Environment=PYTHONPATH=/home/ayyan/presentify
+WorkingDirectory=/home/ayyan/presentify
+ExecStart=/home/ayyan/presentify/env/bin/celery -A presentify.celery:app beat --loglevel=INFO --logfile=/var/log/celery/beat.log
+Restart=always
+RestartSec=3
+StartLimitBurst=5
+StartLimitInterval=10
+
+[Install]
+WantedBy=multi-user.target
+```
+
+#### **2.4 Create Logging Directory**
+
+Create a directory for Celery logs and set proper permissions:
+
+```bash
+sudo mkdir /var/log/celery
+sudo chown -R ayyan:www-data /var/log/celery
+```
+
+#### **2.5 Create PID Directory**
+
+Create a directory for Celery PID files:
+
+```bash
+sudo mkdir /var/run/celery
+sudo chown -R ayyan:www-data /var/run/celery
+```
+
+---
+
+### **Step 3: Configure Systemd Settings for High Availability**
+
+To ensure minimal downtime, configure systemd to automatically restart the services and limit the number of restarts to prevent a crash loop.
+
+#### **3.1 Modify Restart Policies**
+
+In the `[Service]` section of both `celery.service` and `celerybeat.service`, ensure the following:
+
+```ini
+Restart=always
+RestartSec=3
+StartLimitBurst=5
+StartLimitInterval=10
+```
+
+This configuration will:
+
+- **Restart=always:** Always restart the service when it stops.
+- **RestartSec=3:** Wait 3 seconds before restarting.
+- **StartLimitBurst=5:** Allow up to 5 restarts...
+- **StartLimitInterval=10:** ...within 10 seconds before systemd gives up.
+
+This prevents rapid restarts that can cause system instability.
+
+---
+
+### **Step 4: Enable and Start the Services**
+
+Reload systemd to recognize the new service files:
+
+```bash
+sudo systemctl daemon-reload
+```
+
+Enable the services to start on boot:
+
+```bash
+sudo systemctl enable celery
+sudo systemctl enable celerybeat
+```
+
+Start the services:
+
+```bash
+sudo systemctl start celery
+sudo systemctl start celerybeat
+```
+
+---
+
+### **Step 5: Verify the Services**
+
+Check the status of the services to ensure they're running properly:
+
+```bash
+sudo systemctl status celery
+sudo systemctl status celerybeat
+```
+
+You should see that both services are `active (running)`.
+
+---
+
+### **Step 6: Configure Logging**
+
+Ensure logs are being written correctly to `/var/log/celery/`. You can monitor the logs using:
+
+```bash
+tail -f /var/log/celery/worker.log
+tail -f /var/log/celery/beat.log
+```
+
+---
+
+### **Additional Considerations for High Availability**
+
+#### **6.1 Optimize Celery Workers**
+
+- **Concurrency:** Adjust the number of worker processes according to your server's CPU cores.
+
+  In your `ExecStart` command for `celery.service`, add the `--concurrency` option:
+
+  ```ini
+  ExecStart=/home/ayyan/presentify/env/bin/celery multi start worker --app=presentify.celery:app --concurrency=4 --logfile=/var/log/celery/worker.log --pidfile=/var/run/celery/%n.pid
+  ```
+
+  Replace `4` with the optimal number of processes for your server.
+
+- **Prefetching:** Optimize task prefetching to balance task throughput and latency.
+
+#### **6.2 Use a Process Supervisor**
+
+While systemd handles process management, using Celery's built-in `celery multi` allows for managing multiple worker processes.
+
+#### **6.3 Monitoring**
+
+Implement monitoring to detect and respond to failures promptly:
+
+- **Flower:** A web-based tool for monitoring and administrating Celery clusters.
+
+  Install Flower:
+
+  ```bash
+  pip install flower
+  ```
+
+  Run Flower as a service similar to Celery and Celery Beat.
+
+#### **6.4 Database and Broker High Availability**
+
+Ensure your message broker (e.g., RabbitMQ, Redis) and database are configured for high availability to prevent them from being single points of failure.
+
+#### **6.5 Periodic Health Checks**
+
+Set up health checks to monitor the status of your Celery workers and Celery Beat scheduler.
+
+---
+
+### **Security Considerations**
+
+- **User Permissions:** Ensure the `User` and `Group` settings in your service files have the necessary permissions to access your project files and virtual environment.
+
+- **Environment Variables:** If your project requires specific environment variables, include them in the `[Service]` section using `Environment=` or load them from an environment file with `EnvironmentFile=`.
+
+---
+
+### **Testing the Setup**
+
+After setting up, perform the following tests:
+
+1. **Restart Services:**
+
+   ```bash
+   sudo systemctl restart celery
+   sudo systemctl restart celerybeat
+   ```
+
+2. **Simulate Failure:**
+
+   - Kill a Celery worker process and observe if systemd restarts it automatically.
+
+3. **Run Tasks:**
+
+   - Queue tasks and ensure they are executed.
+   - Schedule periodic tasks and confirm they are running as expected.
+
+---
+
+### **Summary**
+
+By configuring Celery and Celery Beat as systemd services with appropriate restart policies and monitoring, you achieve a robust setup with minimal downtime. This setup ensures:
+
+- Automatic restarts in case of failures.
+- Integration with the system's init system.
+- Centralized logging.
+- Enhanced security through controlled user permissions.
+
+---
+
+### **Final Notes**
+
+- **Documentation:** Keep documentation of your configurations for maintenance purposes.
+- **Updates:** Regularly update Celery, Django, and other dependencies to incorporate security patches and improvements.
+- **Backups:** Ensure you have backups of your configuration files and data.
+
+---
+
+If you need further assistance or have questions about specific configurations, feel free to ask!
