@@ -634,24 +634,36 @@ sudo nano /etc/systemd/system/celery.service
 
 ```ini
 [Unit]
-Description=Celery Service
-After=network.target
-
-[Service]
 Type=forking
 User=ayyan
 Group=www-data
 Environment=DJANGO_SETTINGS_MODULE=presentify.settings
 Environment=PYTHONPATH=/home/ayyan/presentify
 WorkingDirectory=/home/ayyan/presentify
-ExecStart=/home/ayyan/presentify/env/bin/celery multi start worker --app=presentify.celery:app --concurrency=4 --logfile=/var/log/celery/worker.log --pidfile=/var/run/celery/%n.pid
-ExecStop=/home/ayyan/presentify/env/bin/celery multi stopwait worker --pidfile=/var/run/celery/%n.pid
-ExecReload=/home/ayyan/presentify/env/bin/celery multi restart worker --pidfile=/var/run/celery/%n.pid
+ExecStart=/home/ayyan/presentify/env/bin/celery multi start worker \
+    --app=presentify.celery:app \
+    --concurrency=2 \
+    --pool=prefork \
+    --prefetch-multiplier=1 \
+    --max-tasks-per-child=50 \
+    --logfile=/var/log/celery/%n.log \
+    --pidfile=/var/run/celery/%n.pid
+ExecStop=/home/ayyan/presentify/env/bin/celery multi stopwait worker \
+    --pidfile=/var/run/celery/%n.pid
+ExecReload=/home/ayyan/presentify/env/bin/celery multi restart worker \
+    --pidfile=/var/run/celery/%n.pid
 Restart=always
 RestartSec=3
 StartLimitBurst=5
 StartLimitInterval=10
 LimitNOFILE=65536
+
+
+# Resource limits to prevent excessive memory usage
+MemoryLimit=1024M           # Limit to 1 GB per worker process
+CPUQuota=50%                # Limit to 50% of a single CPU core
+
+
 
 [Install]
 WantedBy=multi-user.target
@@ -679,11 +691,15 @@ Group=www-data
 Environment=DJANGO_SETTINGS_MODULE=presentify.settings
 Environment=PYTHONPATH=/home/ayyan/presentify
 WorkingDirectory=/home/ayyan/presentify
-ExecStart=/home/ayyan/presentify/env/bin/celery -A presentify.celery:app beat --loglevel=INFO --logfile=/var/log/celery/beat.log
+ExecStart=/home/ayyan/presentify/env/bin/celery -A presentify.celery:app beat --loglevel=IN>
 Restart=always
 RestartSec=3
 StartLimitBurst=5
 StartLimitInterval=10
+
+# Memory and CPU limits
+MemoryLimit=512M            # Restrict memory usage
+CPUQuota=20%                # Restrict CPU usage to 20% of a single core
 
 [Install]
 WantedBy=multi-user.target
