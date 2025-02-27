@@ -80,7 +80,7 @@ exit
       - Copy Zip File from Local Windows Machine to Linux Remote Server
       ```sh
       Syntax:- scp -P Remote_Server_Port Source_File_Path Destination_Path
-      Example:- scp -P 1034 presentify.zip ayyan@216.32.44.12:
+      Example:- scp -P 1034 backend.zip ayyan@216.32.44.12:
       ```
       - Copied Successfully
       - Get Access to Remote Server via SSH
@@ -91,7 +91,7 @@ exit
       - Unzip the Copied Project Zip File
       ```sh
       Syntax:- unzip zip_file_name
-      Example:- unzip presentify.zip
+      Example:- unzip backend.zip
       ```
       
   2. Using Github
@@ -118,7 +118,7 @@ exit
       - Clone Project from your github Repo using SSH Path It requires to setup SSH Key on Github
       ```sh
       Syntax:- git clone ssh_repo_path
-      Example:- git clone git@github.com:geekyshow1/presentify.git
+      Example:- git clone git@github.com:geekyshow1/backend.git
       ```
 - Create Virtual env
 ```sh
@@ -146,9 +146,9 @@ deactivate
 - Create System Socket File for Gunicorn
 ```sh
 Syntax:- sudo nano /etc/systemd/system/your_domain.gunicorn.socket
-Example:- sudo nano /etc/systemd/system/presentify.ai.gunicorn.socket
+Example:- sudo nano /etc/systemd/system/backend.ai.gunicorn.socket
 ```
-- Write below code inside presentify.ai.gunicorn.socket File
+- Write below code inside backend.ai.gunicorn.socket File
 ```sh
 Syntax:- 
 [Unit]
@@ -162,10 +162,10 @@ WantedBy=sockets.target
 
 Example:- 
 [Unit]
-Description=presentify.ai.gunicorn socket
+Description=backend.ai.gunicorn socket
 
 [Socket]
-ListenStream=/run/presentify.ai.gunicorn.sock
+ListenStream=/run/backend.ai.gunicorn.sock
 
 [Install]
 WantedBy=sockets.target
@@ -173,9 +173,9 @@ WantedBy=sockets.target
 - Create System Service File for Gunicorn
 ```sh
 Syntax:- sudo nano /etc/systemd/system/your_domain.gunicorn.service
-Example:- sudo nano /etc/systemd/system/presentify.ai.gunicorn.service
+Example:- sudo nano /etc/systemd/system/backend.ai.gunicorn.service
 ```
-- Write below code inside presentify.ai.gunicorn.service File
+- Write below code inside backend.ai.gunicorn.service File
 ```sh
 Syntax:-
 [Unit]
@@ -198,19 +198,19 @@ WantedBy=multi-user.target
 
 Example:-
 [Unit]
-Description=presentify.ai.gunicorn daemon
-Requires=presentify.ai.gunicorn.socket
+Description=backend.ai.gunicorn daemon
+Requires=backend.ai.gunicorn.socket
 After=network.target
 
 [Service]
 User=ayyan
 Group=ayyan
-WorkingDirectory=/home/ayyan/presentify
-ExecStart=/home/ayyan/presentify/mb/bin/gunicorn \
+WorkingDirectory=/home/ayyan/backend
+ExecStart=/home/ayyan/backend/mb/bin/gunicorn \
           --access-logfile - \
           --workers 3 \
-          --bind unix:/run/presentify.ai.gunicorn.sock \
-          presentify.wsgi:application
+          --bind unix:/run/backend.ai.gunicorn.sock \
+          backend.wsgi:application
 
 [Install]
 WantedBy=multi-user.target
@@ -218,33 +218,33 @@ WantedBy=multi-user.target
 - Start Gunicorn Socket and Service
 ```sh
 Syntax:- sudo systemctl start your_domain.gunicorn.socket
-Example:- sudo systemctl start presentify.ai.gunicorn.socket
+Example:- sudo systemctl start backend.ai.gunicorn.socket
 
 Syntax:- sudo systemctl start your_domain.gunicorn.service
-Example:- sudo systemctl start presentify.ai.gunicorn.service
+Example:- sudo systemctl start backend.ai.gunicorn.service
 ```
 - Enable Gunicorn Socket and Service
 ```sh
 Syntax:- sudo systemctl enable your_domain.gunicorn.socket
-Example:- sudo systemctl enable presentify.ai.gunicorn.socket
+Example:- sudo systemctl enable backend.ai.gunicorn.socket
 
 Syntax:- sudo systemctl enable your_domain.gunicorn.service
-Example:- sudo systemctl enable presentify.ai.gunicorn.service
+Example:- sudo systemctl enable backend.ai.gunicorn.service
 ```
 - Check Gunicorn Status
 ```sh
-sudo systemctl status presentify.ai.gunicorn.socket
-sudo systemctl status presentify.ai.gunicorn.service
+sudo systemctl status backend.ai.gunicorn.socket
+sudo systemctl status backend.ai.gunicorn.service
 ```
 - Restart Gunicorn (You may need to restart everytime you make change in your project code)
 ```sh
 sudo systemctl daemon-reload
-sudo systemctl restart presentify.ai.gunicorn
+sudo systemctl restart backend.ai.gunicorn
 ```
 - Create Virtual Host File
 ```sh
 Syntax:- sudo nano /etc/nginx/sites-available/your_domain
-Example:- sudo nano /etc/nginx/sites-available/presentify.ai
+Example:- sudo nano /etc/nginx/sites-available/backend.ai
 ```
 - Write following Code in Virtual Host File
 ```sh
@@ -279,7 +279,7 @@ server{
     listen 80;
     listen [::]:80;
 
-    server_name presentify.ai www.presentify.ai;
+    server_name backend.ai www.backend.ai;
 
     location = /favicon.ico { access_log off; log_not_found off; }
 
@@ -288,22 +288,22 @@ server{
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_pass http://unix:/run/presentify.ai.gunicorn.sock;
+        proxy_pass http://unix:/run/backend.ai.gunicorn.sock;
     }
 
     location  /static/ {
-        root /var/www/presentify;
+        root /var/www/backend;
     }
 
     location  /media/ {
-        root /var/www/presentify;
+        root /var/www/backend;
     }
 }
 ```
 - Enable Virtual Host or Create Symbolic Link of Virtual Host File
 ```sh
 Syntax:- sudo ln -s /etc/nginx/sites-available/virtual_host_file /etc/nginx/sites-enabled/virtual_host_file
-Example:- sudo ln -s /etc/nginx/sites-available/presentify.ai /etc/nginx/sites-enabled/presentify.ai
+Example:- sudo ln -s /etc/nginx/sites-available/backend.ai /etc/nginx/sites-enabled/backend.ai
 ```
 - Check Configuration is Correct or Not
 ```sh
@@ -324,12 +324,12 @@ sudo service nginx restart
     ALLOWED_HOST = ["your_domain"]
     
     Example:-
-    ALLOWED_HOST = ["presentify.ai", "www.presentify.ai"]
+    ALLOWED_HOST = ["backend.ai", "www.backend.ai"]
     ```
     - Restart Gunicorn (You need to restart everytime you make change in your project code)
     ```sh
     sudo systemctl daemon-reload
-    sudo systemctl restart presentify.ai.gunicorn
+    sudo systemctl restart backend.ai.gunicorn
     ```
 - Create required Directories inside /var/www We will use it to serve static and media files only
 ```sh
@@ -342,13 +342,13 @@ sudo mkdir static media
 ```sh
 cd /var/www
 Syntax:- sudo chown -R user:user project_folder_name
-Example:- sudo chown -R ayyan:ayyan presentify
+Example:- sudo chown -R ayyan:ayyan backend
 ```
 - If we want to use Development's Media Files then We should move development's media files to public directory (Optional)
 ```sh
 cd ~/project_folder_name
 Syntax:- sudo mv media/* /var/www/project_folder_name/media/
-Example:- sudo mv media/* /var/www/presentify/media/
+Example:- sudo mv media/* /var/www/backend/media/
 ```
 - Open Django Project settings.py
 ```sh
@@ -360,15 +360,15 @@ nano settings.py
 DEBUG = False
 
 STATIC_URL = 'static/'
-STATIC_ROOT = "/var/www/presentify/static/"
+STATIC_ROOT = "/var/www/backend/static/"
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = "/var/www/presentify/media/"
+MEDIA_ROOT = "/var/www/backend/media/"
 ```
 - Restart Gunicorn (You need to restart everytime you make change in your project code)
 ```sh
 sudo systemctl daemon-reload
-sudo systemctl restart presentify.ai.gunicorn
+sudo systemctl restart backend.ai.gunicorn
 ```
 - Activate Virtual Env
 ```sh
@@ -400,7 +400,7 @@ deactivate
 - Restart Gunicorn (You may need to restart everytime you make change in your project code)
 ```sh
 sudo systemctl daemon-reload
-sudo systemctl restart presentify.ai.gunicorn
+sudo systemctl restart backend.ai.gunicorn
 ```
 - Restart Nginx
 ```sh
@@ -414,14 +414,14 @@ git pull
 - Restart Gunicorn (You may need to restart everytime you make change in your project code)
 ```sh
 sudo systemctl daemon-reload
-sudo systemctl restart presentify.ai.gunicorn
+sudo systemctl restart backend.ai.gunicorn
 ```
 
 ##
 ### How to Automate Django Deployment using Github Action
 - On Your Local Machine, Open Your Project using VS Code or any Editor
-- Create A Folder named .scripts inside your root project folder e.g. presentify/.scripts
-- Inside .scripts folder Create A file with .sh extension e.g. presentify/.scripts/deploy.sh
+- Create A Folder named .scripts inside your root project folder e.g. backend/.scripts
+- Inside .scripts folder Create A file with .sh extension e.g. backend/.scripts/deploy.sh
 - Write below script inside the created .sh file
 ```sh
 #!/bin/bash
@@ -467,8 +467,8 @@ echo "Deployment Finished !"
 ```sh
 git update-index --add --chmod=+x deploy.sh
 ```
-- Create Directory Path named .github/workflows inside your root project folder e.g. presentify/.github/workflows
-- Inside workflows folder Create A file with .yml extension e.g. presentify/.github/workflows/deploy.yml
+- Create Directory Path named .github/workflows inside your root project folder e.g. backend/.github/workflows
+- Inside workflows folder Create A file with .yml extension e.g. backend/.github/workflows/deploy.yml
 - Write below script inside the created .yml file
 ```sh
 name: Deploy
@@ -556,14 +556,14 @@ git pull
 #CELERY
 Certainly! To run Celery and Celery Beat as systemd services on Ubuntu with minimal downtime, you can use `systemctl` to manage these services. This approach provides better integration with the system's init system, allows for automatic restarts, logging, and is generally preferred for production environments.
 
-Below are detailed steps to set up Celery and Celery Beat as systemd services for your Django project `presentify` located at `/home/ayyan/presentify`.
+Below are detailed steps to set up Celery and Celery Beat as systemd services for your Django project `backend` located at `/home/ayyan/backend`.
 
 ---
 
 ### **Prerequisites**
 
 1. **Django Project Setup:**
-   - Your Django project (`presentify`) is properly configured.
+   - Your Django project (`backend`) is properly configured.
    - Celery is installed and configured in your project.
    - Celery Beat is installed for periodic tasks.
    - You have a virtual environment set up (recommended).
@@ -581,7 +581,7 @@ Below are detailed steps to set up Celery and Celery Beat as systemd services fo
 
 Ensure your Django project is configured to work with Celery:
 
-**`presentify/celery.py`:**
+**`backend/celery.py`:**
 
 ```python
 from __future__ import absolute_import, unicode_literals
@@ -589,9 +589,9 @@ import os
 from celery import Celery
 
 # Set default Django settings module for 'celery' program.
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'presentify.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'backend.settings')
 
-app = Celery('presentify')
+app = Celery('backend')
 
 # Using a string here means the worker doesn't have to serialize
 # the configuration object to child processes.
@@ -601,7 +601,7 @@ app.config_from_object('django.conf:settings', namespace='CELERY')
 app.autodiscover_tasks()
 ```
 
-**`presentify/__init__.py`:**
+**`backend/__init__.py`:**
 
 ```python
 from __future__ import absolute_import, unicode_literals
@@ -618,8 +618,8 @@ Ensure your `settings.py` includes the necessary Celery configurations.
 
 #### **2.1 Identify Paths**
 
-- **Project Directory:** `/home/ayyan/presentify`
-- **Virtual Environment (if used):** For example, `/home/ayyan/presentify`
+- **Project Directory:** `/home/ayyan/backend`
+- **Virtual Environment (if used):** For example, `/home/ayyan/backend`
 - **Python Executable:** The Python interpreter from your virtual environment or system Python.
 
 #### **2.2 Create Celery Service File**
@@ -637,20 +637,20 @@ sudo nano /etc/systemd/system/celery.service
 Type=forking
 User=ayyan
 Group=www-data
-Environment=DJANGO_SETTINGS_MODULE=presentify.settings
-Environment=PYTHONPATH=/home/ayyan/presentify
-WorkingDirectory=/home/ayyan/presentify
-ExecStart=/home/ayyan/presentify/env/bin/celery multi start worker \
-    --app=presentify.celery:app \
+Environment=DJANGO_SETTINGS_MODULE=backend.settings
+Environment=PYTHONPATH=/home/ayyan/backend
+WorkingDirectory=/home/ayyan/backend
+ExecStart=/home/ayyan/backend/env/bin/celery multi start worker \
+    --app=backend.celery:app \
     --concurrency=2 \
     --pool=prefork \
     --prefetch-multiplier=1 \
     --max-tasks-per-child=50 \
     --logfile=/var/log/celery/%n.log \
     --pidfile=/var/run/celery/%n.pid
-ExecStop=/home/ayyan/presentify/env/bin/celery multi stopwait worker \
+ExecStop=/home/ayyan/backend/env/bin/celery multi stopwait worker \
     --pidfile=/var/run/celery/%n.pid
-ExecReload=/home/ayyan/presentify/env/bin/celery multi restart worker \
+ExecReload=/home/ayyan/backend/env/bin/celery multi restart worker \
     --pidfile=/var/run/celery/%n.pid
 Restart=always
 RestartSec=3
@@ -688,10 +688,10 @@ After=network.target
 Type=simple
 User=ayyan
 Group=www-data
-Environment=DJANGO_SETTINGS_MODULE=presentify.settings
-Environment=PYTHONPATH=/home/ayyan/presentify
-WorkingDirectory=/home/ayyan/presentify
-ExecStart=/home/ayyan/presentify/env/bin/celery -A presentify.celery:app beat --loglevel=IN>
+Environment=DJANGO_SETTINGS_MODULE=backend.settings
+Environment=PYTHONPATH=/home/ayyan/backend
+WorkingDirectory=/home/ayyan/backend
+ExecStart=/home/ayyan/backend/env/bin/celery -A backend.celery:app beat --loglevel=IN>
 Restart=always
 RestartSec=3
 StartLimitBurst=5
@@ -808,7 +808,7 @@ tail -f /var/log/celery/beat.log
   In your `ExecStart` command for `celery.service`, add the `--concurrency` option:
 
   ```ini
-  ExecStart=/home/ayyan/presentify/env/bin/celery multi start worker --app=presentify.celery:app --concurrency=4 --logfile=/var/log/celery/worker.log --pidfile=/var/run/celery/%n.pid
+  ExecStart=/home/ayyan/backend/env/bin/celery multi start worker --app=backend.celery:app --concurrency=4 --logfile=/var/log/celery/worker.log --pidfile=/var/run/celery/%n.pid
   ```
 
   Replace `4` with the optimal number of processes for your server.
