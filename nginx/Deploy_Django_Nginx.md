@@ -206,7 +206,7 @@ After=network.target
 User=ayyan
 Group=ayyan
 WorkingDirectory=/home/ayyan/backend
-ExecStart=/home/ayyan/backend/mb/bin/gunicorn \
+ExecStart=/home/ayyan/martix-nftee-backend/mb/bin/gunicorn \
           --access-logfile - \
           --workers 3 \
           --bind unix:/run/backend.ai.gunicorn.sock \
@@ -348,7 +348,7 @@ Example:- sudo chown -R ayyan:ayyan backend
 ```sh
 cd ~/project_folder_name
 Syntax:- sudo mv media/* /var/www/project_folder_name/media/
-Example:- sudo mv media/* /var/www/backend/media/
+Example:- sudo mv media/* /var/www/martix-nftee-backend/media/
 ```
 - Open Django Project settings.py
 ```sh
@@ -360,10 +360,10 @@ nano settings.py
 DEBUG = False
 
 STATIC_URL = 'static/'
-STATIC_ROOT = "/var/www/backend/static/"
+STATIC_ROOT = "/var/www/martix-nftee-backend/static/"
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = "/var/www/backend/media/"
+MEDIA_ROOT = "/var/www/martix-nftee-backend/media/"
 ```
 - Restart Gunicorn (You need to restart everytime you make change in your project code)
 ```sh
@@ -420,8 +420,8 @@ sudo systemctl restart backend.ai.gunicorn
 ##
 ### How to Automate Django Deployment using Github Action
 - On Your Local Machine, Open Your Project using VS Code or any Editor
-- Create A Folder named .scripts inside your root project folder e.g. backend/.scripts
-- Inside .scripts folder Create A file with .sh extension e.g. backend/.scripts/deploy.sh
+- Create A Folder named .scripts inside your root project folder e.g. martix-nftee-backend/.scripts
+- Inside .scripts folder Create A file with .sh extension e.g. martix-nftee-backend/.scripts/deploy.sh
 - Write below script inside the created .sh file
 ```sh
 #!/bin/bash
@@ -467,8 +467,8 @@ echo "Deployment Finished !"
 ```sh
 git update-index --add --chmod=+x deploy.sh
 ```
-- Create Directory Path named .github/workflows inside your root project folder e.g. backend/.github/workflows
-- Inside workflows folder Create A file with .yml extension e.g. backend/.github/workflows/deploy.yml
+- Create Directory Path named .github/workflows inside your root project folder e.g. martix-nftee-backend/.github/workflows
+- Inside workflows folder Create A file with .yml extension e.g. martix-nftee-backend/.github/workflows/deploy.yml
 - Write below script inside the created .yml file
 ```sh
 name: Deploy
@@ -581,7 +581,7 @@ Below are detailed steps to set up Celery and Celery Beat as systemd services fo
 
 Ensure your Django project is configured to work with Celery:
 
-**`backend/celery.py`:**
+**`martix-nftee-backend/celery.py`:**
 
 ```python
 from __future__ import absolute_import, unicode_literals
@@ -601,7 +601,7 @@ app.config_from_object('django.conf:settings', namespace='CELERY')
 app.autodiscover_tasks()
 ```
 
-**`backend/__init__.py`:**
+**`martix-nftee-backend/__init__.py`:**
 
 ```python
 from __future__ import absolute_import, unicode_literals
@@ -640,7 +640,7 @@ Group=www-data
 Environment=DJANGO_SETTINGS_MODULE=backend.settings
 Environment=PYTHONPATH=/home/ayyan/backend
 WorkingDirectory=/home/ayyan/backend
-ExecStart=/home/ayyan/backend/env/bin/celery multi start worker \
+ExecStart=/home/ayyan/martix-nftee-backend/env/bin/celery multi start worker \
     --app=backend.celery:app \
     --concurrency=2 \
     --pool=prefork \
@@ -648,9 +648,9 @@ ExecStart=/home/ayyan/backend/env/bin/celery multi start worker \
     --max-tasks-per-child=50 \
     --logfile=/var/log/celery/%n.log \
     --pidfile=/var/run/celery/%n.pid
-ExecStop=/home/ayyan/backend/env/bin/celery multi stopwait worker \
+ExecStop=/home/ayyan/martix-nftee-backend/env/bin/celery multi stopwait worker \
     --pidfile=/var/run/celery/%n.pid
-ExecReload=/home/ayyan/backend/env/bin/celery multi restart worker \
+ExecReload=/home/ayyan/martix-nftee-backend/env/bin/celery multi restart worker \
     --pidfile=/var/run/celery/%n.pid
 Restart=always
 RestartSec=3
@@ -691,7 +691,7 @@ Group=www-data
 Environment=DJANGO_SETTINGS_MODULE=backend.settings
 Environment=PYTHONPATH=/home/ayyan/backend
 WorkingDirectory=/home/ayyan/backend
-ExecStart=/home/ayyan/backend/env/bin/celery -A backend.celery:app beat --loglevel=IN>
+ExecStart=/home/ayyan/martix-nftee-backend/env/bin/celery -A backend.celery:app beat --loglevel=IN>
 Restart=always
 RestartSec=3
 StartLimitBurst=5
@@ -808,7 +808,7 @@ tail -f /var/log/celery/beat.log
   In your `ExecStart` command for `celery.service`, add the `--concurrency` option:
 
   ```ini
-  ExecStart=/home/ayyan/backend/env/bin/celery multi start worker --app=backend.celery:app --concurrency=4 --logfile=/var/log/celery/worker.log --pidfile=/var/run/celery/%n.pid
+  ExecStart=/home/ayyan/martix-nftee-backend/env/bin/celery multi start worker --app=backend.celery:app --concurrency=4 --logfile=/var/log/celery/worker.log --pidfile=/var/run/celery/%n.pid
   ```
 
   Replace `4` with the optimal number of processes for your server.
